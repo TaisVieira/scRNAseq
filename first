@@ -1,0 +1,67 @@
+### This code runs through R1 file, gets the read name, barcode and umi and creates an id, then goes to R2 file and gets the mRNA sequence and its quality corresponding to that read and puts all that information in a output file. To do that, it goes line by line using line_counter.
+
+r1 = "merged_R1.fastq.gz"
+r2 = "merged_R2.fastq.gz"
+
+import re
+
+with open(r1, "rt") as fp1, open(r2, "rt") as fp2:    #opens files, has to be rt
+    with open("output.fastq", "w+") as output_file:   #creates output file
+        
+        print_counter = 0         #running visual
+        trimmed_counter = 0       #trimmed seqs
+        total_counter = 0         #total seqs in file
+        line_counter = 0          #4 lines file
+        i = 0                     #index for trimming quality
+        
+        for r1_line, r2_line in zip(fp1, fp2):
+            if re.search('^@', r1_line) and re.search('^@', r2_line):   #searches and gets the first line with id
+                line_counter += 1                                       
+                r1_id = list(r1_line.split(" "))[0]
+                r2_id = list(r2_line.split(" "))[0]
+                
+            else:                
+                line_counter += 1
+                if line_counter == 2:      #if it's the second line, creates header and gets mrna
+                    barcode = r1_line[:15]
+                    umi = r1_line[16:27]
+                    new_header = r1_id+'_'+barcode+'_'+umi
+                    mrna = r2_line
+                    
+                    trim_counter = 0        #trims seqs with more than 6 consecutive A (polyA)
+                    for index, letter in enumerate(mrna):
+                         if letter == "A":
+                             trim_counter += 1
+                             if trim_counter == 6:
+                                 trim_counter = 0
+                                 mrna = mrna[:index-6] + "\n"
+                                 i = index
+                                 trimmed_counter += 1
+                                 break       #stops looking for A
+                         else:
+                             trim_counter = 0
+                             
+                    print(new_header, file=output_file)      #prints info to output file
+                    print(mrna, end='', file=output_file)
+                    print("+", file=output_file)
+                    
+                elif line_counter == 4:     #when it gets to the fourth line, it trimms quality if necessary
+                    if i == 0:              
+                        quality = r2_line
+                    else:
+                        quality = r2_line[:i-6] + "\n"
+                        i = 0
+                    print(quality, end='', file=output_file)
+                    line_counter = 0
+                    total_counter += 1
+                    print_counter += 1
+                     
+                    if print_counter == 10**7:   #prints a # every 10 million iterations to know code is running
+                        print_counter = 0
+                        print("#")
+        
+                 
+    with open("controls.txt", "w+") as control_file:    #creates controls file
+        control = f"Total number of sequences: {total_counter} \nTrimmed sequences: {trimmed_counter}"
+        print(control, file=control_file)      
+    print("Done")
