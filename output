@@ -1,18 +1,19 @@
-### This code runs through R1 file, gets the read name, barcode and umi and creates an id, then goes to R2 file and gets the mRNA sequence and its quality corresponding to that read and puts all that information in a output file. To do that, it goes line by line using line_counter.
+### This code runs through R1 file, gets the read's name, barcode and umi and creates an id, then goes to R2 file and gets the mRNA sequence and its quality corresponding 
+to that read and puts all that information in a output file. To do that, it goes line by line using line_counter.
 
 r1 = "merged_R1.fastq.gz"
 r2 = "merged_R2.fastq.gz"
 
 import re
 
-with open(r1, "rt") as fp1, open(r2, "rt") as fp2:    #opens files, has to be rt
-    with open("output.fastq", "w+") as output_file:   #creates output file
+with open(r1, "rt") as fp1, open(r2, "rt") as fp2:    
+    with open("output.fastq", "w+") as output_file:   
         
-        print_counter = 0         #running visual
-        trimmed_counter = 0       #trimmed seqs
-        total_counter = 0         #total seqs in file
-        line_counter = 0          #4 lines file
-        i = 0                     #index for trimming quality
+        print_counter = 0         
+        trimmed_counter = 0       
+        total_counter = 0         
+        line_counter = 0          
+        i = 0                     
         
         for r1_line, r2_line in zip(fp1, fp2):
             if re.search('^@', r1_line) and re.search('^@', r2_line):   #searches and gets the first line with id
