@@ -1,0 +1,19 @@
+### Finally, this is how to annotate the PCA graph using the genes of interest
+
+# creates a new dataframe with non-numerical info which can't be used for running pca
+h3_trans_norm_high_exp_col <- h3_trans_norm_high_exp
+
+# adds stage column
+h3_trans_norm_high_exp_col["stages"]<-"n"
+
+# annotates each cell based on a given gene's expression
+c<-grep("PF3D7_1462800",colnames(h3_trans_norm_high_exp_col))
+
+# can be used to calculate some kind of cutoff
+m<-max(h3_trans_norm_high_exp_col[,c]) 
+
+# uses "m" to choose the top 90% cells that express this gene and adds the gene name to the "stage" column
+h3_trans_norm_high_exp_col[which(h3_trans_norm_high_exp_col[,c]>m*0.1),5006]<-"gapdh"
+
+# creates plot automatically using stage information for color
+autoplot(h3_pca, data=h3_trans_norm_high_exp_col, colour="sample", alpha=0.4)
