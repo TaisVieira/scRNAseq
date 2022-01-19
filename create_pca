@@ -1,0 +1,11 @@
+### This step does the necessary processing to the count table so it can be used to create a PCA graph
+
+final_table_normalized[] <- lapply(final_table_normalized[], function(x) ((x/(sum(x))*1000)))     #normalize the table
+final_table_normalized$X <- NULL    
+transposed_normalized <- t(final_table_normalized)
+i <- (colSums(transposed_normalized, na.rm = T) > 2.5)   #lists the cols where the count sum is bigger than 2.5
+trans_norm_high_exp <- transposed_normalized[,i]         #trimms the dataframe to only the highly expressed genes
+
+pca_data <- prcomp(trans_norm_high_exp, scale. = TRUE)   #creates the PCA 
+library(ggfortify)
+autoplot(pca_data)
