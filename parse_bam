@@ -1,0 +1,47 @@
+### This code parses over every line of the BAM file taking the read name, chromossome, position and strand and creating two dictionaries, one for each cell in the sample 
+### (each different barcode) and the other for each unique read. This will allow you to know how many reads there were in each cell and how many times each unique read showed up 
+### (PCR duplicates).
+
+from collections import defaultdict
+import sys       
+
+read_dic = defaultdict(list)
+dup_dic = defaultdict(int)
+for line in sys.stdin:    
+ 
+
+info = line.split("   ")                #gets the information from each line
+read = info[0]
+barcode = read.split("_")[1]
+umi = read.split("_")[2]
+chromossome = info[2]
+position = info[3]
+strand = info[1]
+
+if strand == "0":                #if it's a secondary alignment it doesn't count
+    strand = "Forward"
+    unique = [barcode, umi, chromossome, position, strand]   #creates a unique read
+elif strand == "16":
+    strand = "Reverse"
+    unique = [barcode, umi, chromossome, position, strand]
+else:
+     continue
+
+if unique not in read_dic[barcode]:    #if that cell doesn't have this read, append it
+    read_dic[barcode].append(unique)
+
+unique = f"{barcode}, {umi}, {chromossome}, {position}"
+dup_dic[unique] += 1              #counts duplicates
+
+with open("unique_reads_per_cell.txt", "w+") as unique_cell:   #prints output to file
+    print('Barcode\tReads', file = unique_cell)
+    for k,v in read_dic.items():
+        print(f"{k}\t{len(v)}", file = unique_cell)
+                  
+with open("duplicate_reads.txt", "w+") as duplicate:
+    print('Mapped_sequences\t Duplicates', file = duplicate)
+    for k,v in dup_dic.items():
+        print(f"{k}\t{v}", file = duplicate)
+          
+unique_cell.close()
+duplicate.close()
