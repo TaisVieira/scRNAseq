@@ -1,0 +1,98 @@
+### This step creates an annotation file containing all the information necessary to create a cell x gene table and then creates that table
+
+## First select only the cells with more than 5000 reads
+c1 = 0
+cell_reads = []
+with open("unique_reads_per_cell.txt", "r") as bc_file:
+    for line in bc_file:              
+        if c1 < 1:
+            c1 += 1
+        else:
+            barcode = line.split()[0]
+            reads = int(line.split()[-1])
+            if reads >= 5000:
+               cell_reads.append(barcode)
+               
+## Second create annotation file with gene names and positions         
+annotation_file = open("annotation_file.txt", "w+")        
+c2 = 0                                                     
+with open("PlasmoDB-54_Pfalciparum3D7.gff", "r") as gff_file:
+    for line in gff_file:
+        if c2 >= 2:                                        
+            annotation = line.split()
+            if annotation[2] == "protein_coding_gene":     #finds line with gene info
+                chromossome = annotation[0]                #gets chr name
+                
+                gene_name = line.split("=")[-1]            #gets gene name
+                gene_name = gene_name.replace(" ", "_")
+                
+                gene_id = re.split("=|;", line)[1]         #gets gene id from plsmodb
+                
+                gene = f"{gene_id}_{gene_name.split()[0]}"            #merges gene id and name for final table
+                
+                
+                if annotation[6] == "+":                   #if forward print normal
+                    position = "foward_strand"
+                    position_5 = int(annotation[3])
+                    position_3 = int(annotation[4]) + 500
+                    print(f"{chromossome}\t{gene}\t{position_5}\t{position_3}\t{position}", file=annotation_file)
+                    
+                elif annotation[6] == "-":                 #if reverse print inverted so the smaller number 
+                    position = "reverse_strand"            #is always first
+                    position_5 = int(annotation[4])        
+                    position_3 = int(annotation[3]) + 500 
+                    print(f"{chromossome}\t{gene}\t{position_3}\t{position_5}\t{position}", file=annotation_file)
+                
+            else:
+                continue
+        else:
+            c2 += 1
+            
+## Third create dictionary with all chromossomes and its genes and positions
+chr_dic = dict()
+with open("annotation_file.txt", "r") as ann:   
+    for line in ann:
+        chr_name = line.split()[0]
+        if chr_name not in chr_dic:
+            chr_dic[chr_name] = []
+        if len(chr_dic) < 16:
+            continue
+        else:
+            break
+ 
+with open("annotation_file.txt", "r") as annotation_file:    
+    for line in annotation_file:                            
+        ann_chromossome = line.split()[0]
+        ann_gene = line.split()[1]
+        ann_position = (int(line.split()[2]), int(line.split()[3]))
+        new_gene = (ann_gene,ann_position)
+        chr_dic[ann_chromossome].append(new_gene)
+        
+## Fourth create a dictionary with every gene and all the cells that mapped that gene using the file with unique reads
+hit_dic = defaultdict(list)       
+with open("unique_reads.txt", "r") as mapped:     
+    next(mapped)                                 
+    for line in mapped:                          
+        read_bc = line.split()[0][:-1]
+        read_chromossome = line.split()[2][:-1]
+        read_position = int(line.split()[3][:-1])
+        if read_bc in cell_reads:                
+            for k, v in chr_dic.items():
+                if k == read_chromossome:        #looks for that gene in the right chromossome
+                    for (name, position) in v:   
+                        pos1 = int(position[0])
+                        pos2 = int(position[1])
+                        if pos1 < read_position < pos2:    #if the position maps to a gene
+                            hit_dic[name].append(read_bc)  #links the cell barcode to that gene
+                            
+## Finally create the final table with how many times a gene was sequenced in each cell
+final_table = open("final_table.txt", "w+")       
+for bc in cell_reads:                             
+    print(f"{bc}\t", file=final_table, end="")    #creates columns
+for gene_tag, cells in hit_dic.items():
+    print("\n"+gene_tag, file=final_table, end="\t")  #creates rows
+    c3 = 0
+    for cell in cell_reads:                       #populates table
+        cell_count = cells.count(cell)
+        print(cell_count, file=final_table, end="\t")
+final_table.close()
