@@ -1,0 +1,13 @@
+### These lines identify one of the distict populations that was seen on the PCA graphs
+
+#isolates the population
+pop <- subset(pca_df, PC1>-1 & PC1<3.5)   
+pop <- subset(pop, PC2>-3 & 3>PC2)
+
+#plot the isolate to make sure it's correct
+ggplot(pop, aes(x=PC1, y=PC2, color=stages)) + geom_point(alpha=0.4) + labs(title="pop", x=percentage[1], y=percentage[2])
+
+#gets the barcode from the cells in that population and uses only those cells to create a ranking list of their most expressed genes
+pop_bc <- pop$barcode
+pop_exp <- merged_full_table[which(merged_full_table$barccodes %in% pop_bc),]
+exp<-sort(colSums(pop_exp[,1:5192]),decreasing=TRUE)
