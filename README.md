@@ -9,3 +9,4 @@ The files are divided as follow:
 3) count_table - source code in Python to generate and populate a table containing all the cells that are suitable for the analysis and how many times each gene was sequenced for each of those cells.
 4) create_pca - source code in R to process the count table and create a PCA (Principal Component Analysis) based on it.
 5) annotate_pca - source code in R to annotate the PCA graph using gene expression
+6) id_pop - source code in R to identify the population shown on the saponin 1 and Percoll graphs
