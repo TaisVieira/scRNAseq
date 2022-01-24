@@ -6,14 +6,17 @@ h3_trans_norm_high_exp_col <- h3_trans_norm_high_exp
 # adds stage column
 h3_trans_norm_high_exp_col["stages"]<-"n"
 
-# annotates each cell based on a given gene's expression
-c<-grep("PF3D7_1462800",colnames(h3_trans_norm_high_exp_col))
-
-# can be used to calculate some kind of cutoff
-m<-max(h3_trans_norm_high_exp_col[,c]) 
-
-# uses "m" to choose the top 90% cells that express this gene and adds the gene name to the "stage" column
-h3_trans_norm_high_exp_col[which(h3_trans_norm_high_exp_col[,c]>m*0.1),5006]<-"gapdh"
+# annotates each cell based on a given gene's expression 
+c<-grep("PF3D7_0935900",colnames(merged_full_table))
+rex1<-merged_full_table[,c]
+rex1[rex1==0]<-NA
+rex1<-rex1[!is.na(rex1)]                     # doesn't consider zeros
+out <- boxplot(rex1, plot=F)$out             # doesn't consider outliers
+rex1 <- rex1[-which(rex1 %in% out)]
+m<-quantile(rex1, probs = 0.25)              # finds cells in the 25th percentile
+r <- which(merged_full_table[,c]>m)
+pca_df[r,5193] <-"REX1"                      # annotates those cells
+pca_df[r,5194] <- log(merged_full_table[r,c]+1)
 
 # creates plot automatically using stage information for color
 autoplot(h3_pca, data=h3_trans_norm_high_exp_col, colour="sample", alpha=0.4)
