@@ -1,6 +1,6 @@
 # Source code for the report on FAPESP process number 2021/10532-6.
 
-The files in this repository contain all of the source code used to complete the study done for the project "Use of Single-Cell RNAseq technology to identify and characterize Plasmodium knowlesi sexual stages". This study aimed to compare three different synchronization methods – MACS, Percoll and saponin – from four different Plasmodium falciparum samples to know which one has the best recuperation ratio.
+The files in this repository contain all of the source code used to complete the study done for the project "Use of Single-Cell RNAseq technology to identify and characterize Plasmodium knowlesi sexual stages". This study aimed to compare three different synchronization methods – MACS, Percoll and saponin – from four different Plasmodium falciparum samples to know which one has the best recuperation ratio. (Despite what the name of the project says, our Plasmodium knowlesi samples were not ready in time for the project, so we had to make some adjustments)
 
 The files are divided as follow:
 
